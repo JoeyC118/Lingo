@@ -9,14 +9,15 @@ interface ThreePanelLayoutProps {
 export const ThreePanelLayout = ({ onBackToCenter }: ThreePanelLayoutProps) => {
   return (
     <div className="min-h-screen bg-background p-4 animate-fade-in">
-      <div className="h-screen flex gap-4">
+      <div className="h-[900px] flex gap-4">
+        
         {/* Left Panel - Main Chat */}
         <div className="flex-1">
           <ChatInterface onFirstMessage={() => {}} isCompactMode />
         </div>
         
         {/* Right Panels - Stacked */}
-        <div className="w-80 flex flex-col gap-4">
+        <div className="w-100 flex flex-col gap-4">
           {/* Top Right Panel - Assistant Info */}
           <Card className="flex-1 bg-surface border-border p-6">
             <div className="flex items-center gap-3 mb-4">

@@ -13,13 +13,13 @@
     --surface-hover: 222 35% 12%;
 
     /* Chat Interface Colors */
-    --chat-primary: 252 83% 57%;
+    --chat-primary: 210 90% 60%;
     --chat-primary-foreground: 210 40% 98%;
     --chat-secondary: 262 52% 47%;
     --chat-accent: 280 100% 70%;
 
     /* Message Bubbles */
-    --message-user: 252 83% 57%;
+    --message-user: 210 90% 60%;
     --message-user-foreground: 210 40% 98%;
     --message-ai: 222 35% 15%;
     --message-ai-foreground: 210 40% 92%;

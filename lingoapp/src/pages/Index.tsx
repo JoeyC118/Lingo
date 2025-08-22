@@ -3,7 +3,7 @@ import { ChatInterface } from "@/components/ChatInterface";
 import { ThreePanelLayout } from "@/components/ThreePanelLayout";
 
 const Index = () => {
-  const [showThreePanels, setShowThreePanels] = useState(false);
+  const [showThreePanels, setShowThreePanels] = useState(true); //inital value is false
 
   const handleFirstMessage = () => {
     setTimeout(() => {
