@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
 import { Card } from "@/components/ui/card";
+import { sendMessageToServer  } from "@/lib/api";
 
 export interface Message {
   id: string;
@@ -18,7 +19,10 @@ interface ChatInterfaceProps {
 export const ChatInterface = ({ onFirstMessage, isCompactMode = false }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const handleSendMessage = (text: string) => {
+
+  //defining a function
+  // the : Message is saying that userMessage must match the message interface
+  const handleSendMessage = async (text: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       text,
@@ -27,22 +31,19 @@ export const ChatInterface = ({ onFirstMessage, isCompactMode = false }: ChatInt
     };
 
     setMessages(prev => [...prev, userMessage]);
+    console.log("Sending to API")
 
-    // Trigger layout change on first message
-    if (messages.length === 0) {
-      onFirstMessage();
+    const replyText = await sendMessageToServer(text)
+
+    const aiMessage: Message = {
+      id:(Date.now() + 1).toString(),
+      text:replyText,
+      isUser: false,
+      timestamp: new Date(),
     }
+    
+    setMessages(prev => [...prev,aiMessage])
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "I'm Lingo, your AI assistant! I'm here to help you with any questions you might have. What would you like to talk about?",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
   };
 
   if (!isCompactMode) {
