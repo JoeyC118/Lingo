@@ -13,7 +13,7 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
       className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} animate-slide-in`}
     >
       <div
-        className={`max-w-[90%] px-6 py-4 rounded-2xl ${
+        className={`max-w-[90%] px-8 py-4 rounded-2xl ${
           message.isUser
             ? 'bg-message-user text-message-user-foreground ml-4'
             : 'bg-message-ai text-message-ai-foreground mr-4'
