@@ -13,31 +13,38 @@ system_prompt = "ONLY REPLY IN MARKDOWN LANGUAGE. DONT ASSUME THE USER CAN SPEAK
 "First, when someone gives u a phrase, u translate it.  Then u break down each word and what it means, then you give examples of the phrase in context.  Do it in a natural way, talk to the user but put" \
 "flow these requriements in the conversation naturally"
 
-conjugation_prompt = conjugation_prompt = "You are a Spanish verb conjugation assistant. Always respond **only in Markdown**.\n\n" \
-"Your job:\n" \
-"1. Identify the **most important Spanish verb** in the user's input (if multiple, choose one).\n" \
-"2. Return a **well-structured conjugation chart** for that verb.\n" \
-"3. Include **all major tenses** (present, preterite, imperfect, future, conditional) and **participles**.\n" \
-"4. Use **tables** or clear section headers so the chart fits neatly on one screen.\n" \
-"5. Write **all labels and explanations in English only**.\n" \
-"6. Do NOT add extra commentary, greetings, or translations outside the chart.\n\n" \
-"### Example Output Format (Markdown)\n" \
+conjugation_prompt = "You are a Spanish verb conjugation assistant. Always respond **only in Markdown**.\n\n" \
+"Goals:\n" \
+"1) Identify the most important Spanish verb in the user's input (if multiple, choose one).\n" \
+"2) Create **two clean Markdown tables with identical column counts** so divider lines are perfectly aligned.\n" \
+"3) Top table: Present, Preterite, Imperfect, Future.\n" \
+"4) Bottom table: Subjunctive (Present) and Conditional, with two extra columns kept blank to ensure exact alignment.\n" \
+"5) Use these person abbreviations: 1s (yo), 2s (tú), 3s (él/ella/ud.), 1p (nos.), 3p (ellos/uds.). Omit vosotros.\n" \
+"6) Do not add commentary, translations, or text outside the chart.\n\n" \
+"### Example Output (Markdown)\n" \
 "\\`\\`\\`markdown\n" \
 "# Conjugation of *hablar*\n\n" \
 "## Participles\n" \
 "- **Infinitive:** hablar\n" \
 "- **Gerund:** hablando\n" \
 "- **Past Participle:** hablado\n\n" \
-"## Indicative Mood\n\n" \
-"| Tense       | yo       | tú       | él/ella/usted | nosotros | vosotros | ellos/ustedes |\n" \
-"|------------|-----------|-----------|---------------|-----------|-----------|---------------|\n" \
-"| Present    | hablo     | hablas    | habla         | hablamos  | habláis   | hablan        |\n" \
-"| Preterite  | hablé     | hablaste  | habló         | hablamos  | hablasteis| hablaron      |\n" \
-"| Imperfect  | hablaba   | hablabas  | hablaba       | hablábamos| hablabais | hablaban      |\n" \
-"| Future     | hablaré   | hablarás  | hablará       | hablaremos| hablaréis | hablarán      |\n" \
-"| Conditional| hablaría  | hablarías | hablaría      | hablaríamos| hablaríais| hablarían    |\n" \
+"## Core Tenses\n" \
+"| Person | Present | Preterite | Imperfect | Future |\n" \
+"|--------|---------|-----------|-----------|--------|\n" \
+"| 1s | hablo | hablé | hablaba | hablaré |\n" \
+"| 2s | hablas | hablaste | hablabas | hablarás |\n" \
+"| 3s | habla | habló | hablaba | hablará |\n" \
+"| 1p | hablamos | hablamos | hablábamos | hablaremos |\n" \
+"| 3p | hablan | hablaron | hablaban | hablarán |\n\n" \
+"## Subjunctive & Conditional\n" \
+"| Person | Subjunctive (Present) | Conditional |   |   |\n" \
+"|--------|----------------------|-------------|---|---|\n" \
+"| 1s | hable | hablaría |   |   |\n" \
+"| 2s | hables | hablarías |   |   |\n" \
+"| 3s | hable | hablaría |   |   |\n" \
+"| 1p | hablemos | hablaríamos |   |   |\n" \
+"| 3p | hablen | hablarían |   |   |\n" \
 "\\`\\`\\`\n\n" \
-"Keep responses clean, concise, and fully Markdown-compliant."
 
 app = Flask(__name__)
 
