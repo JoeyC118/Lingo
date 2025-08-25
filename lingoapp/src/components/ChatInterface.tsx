@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
 import { Card } from "@/components/ui/card";
-import { sendMessageToServer  } from "@/lib/api";
+import { sendMessageToServer, getConjugationChart  } from "@/lib/api";
 
 export interface Message {
   id: string;
@@ -14,10 +14,12 @@ export interface Message {
 interface ChatInterfaceProps {
   onFirstMessage: () => void;
   isCompactMode?: boolean;
+  setChart: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export const ChatInterface = ({ onFirstMessage, isCompactMode = false }: ChatInterfaceProps) => {
+export const ChatInterface = ({onFirstMessage, isCompactMode = false, setChart }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
+
 
 
   //defining a function
@@ -34,6 +36,18 @@ export const ChatInterface = ({ onFirstMessage, isCompactMode = false }: ChatInt
     console.log("Sending to API")
 
     const replyText = await sendMessageToServer(text)
+    const chartMessage = await getConjugationChart(text)
+
+    setChart(chartMessage)
+
+    if (typeof chartMessage === "string" && chartMessage.trim().length > 0) {
+      setChart(chartMessage);
+    } else {
+      console.warn("Empty chartMessage; showing fallback.");
+      setChart("**No chart returned.**");
+    }
+
+
 
     const aiMessage: Message = {
       id:(Date.now() + 1).toString(),

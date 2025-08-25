@@ -1,19 +1,22 @@
 import { ChatInterface } from "./ChatInterface";
 import { Card } from "@/components/ui/card";
 import { Bot, History, Settings } from "lucide-react";
+import { useState } from "react"
+import ReactMarkdown  from "react-markdown"
 
 interface ThreePanelLayoutProps {
   onBackToCenter: () => void;
 }
 
 export const ThreePanelLayout = ({ onBackToCenter }: ThreePanelLayoutProps) => {
+  const [chart, setChart] = useState("")
   return (
     <div className="min-h-screen bg-background p-4 animate-fade-in">
       <div className="h-[900px] flex gap-4">
         
         {/* Left Panel - Main Chat */}
         <div className="flex-1">
-          <ChatInterface onFirstMessage={() => {}} isCompactMode />
+          <ChatInterface setChart = {setChart} onFirstMessage={() => {}} isCompactMode />
         </div>
         
         {/* Right Panels - Stacked */}
@@ -27,11 +30,8 @@ export const ThreePanelLayout = ({ onBackToCenter }: ThreePanelLayoutProps) => {
               <h2 className="text-lg font-semibold text-foreground">Conjugation Chart</h2>
             </div>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <p>
-                Here, a chart of all the conjugations of the verb you used will appear.
-              </p>
-            
-              <div className="pt-4 border-t border-border">
+              <ReactMarkdown>{chart}</ReactMarkdown>
+            <div className="pt-4 border-t border-border">
         
               </div>
             </div>
