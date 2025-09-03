@@ -2,10 +2,11 @@ from flask import Flask,request, jsonify
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-
+from pymongo import MongoClient
 load_dotenv(override=True)
 
 openai_api_key = os.getenv('OPENAI_API_KEY')
+mongodb = os.getenv('MONGODB_URI')
 openai = OpenAI()
 gpt_model = "gpt-4o-mini"
 
@@ -47,6 +48,15 @@ conjugation_prompt = "You are a Spanish verb conjugation assistant. Always respo
 "\\`\\`\\`\n\n" \
 
 app = Flask(__name__)
+
+client = MongoClient(mongodb)
+
+try:
+    # Run a simple command to verify connection
+    client.admin.command("ping")
+    print("✅ Successfully connected to MongoDB Atlas!")
+except Exception as e:
+    print("❌ Connection failed:", e)
 
 @app.route("/", methods = ["GET"])
 def home():
