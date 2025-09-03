@@ -40,3 +40,17 @@ export async function getConjugationChart(message:string) : Promise<string> {
 
     return data.reply as string
 }
+
+
+export async function addWordToList(word: string): Promise<void> {
+  const res = await fetch("/api/words/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ word }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to add word: ${res.status}`);
+  }
+}
+

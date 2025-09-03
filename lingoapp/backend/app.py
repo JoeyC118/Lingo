@@ -51,6 +51,9 @@ conjugation_prompt = "You are a Spanish verb conjugation assistant. Always respo
 app = Flask(__name__)
 
 client = MongoClient(mongodb)
+db = client["lingo_app"]                       # Database name
+users = db["users"]                            # Collection name
+
 nlp = spacy.load("es_core_news_sm")
 
 
@@ -81,6 +84,12 @@ def extract_keywords(sentence: str, max_keywords: int = 5):
 
     return keywords[:max_keywords]
 
+def get_or_create_user():
+    user = users.find_one({"username": "test_user"})
+    if not user:
+        users.insert_one({"username": "test_user", "words": []})
+        user = users.find_one({"username": "test_user"})
+    return user
 
 
 
@@ -125,7 +134,31 @@ def call_conjugation():
 
     return jsonify({"reply":reply}), 200
 
+def get_or_create_user():
+    user = users.find_one({"username": "test_user"})
+    if not user:
+        users.insert_one({"username": "test_user", "words": []})
+        user = users.find_one({"username": "test_user"})
+    return user
 
+@app.route("/api/words/add", methods=["POST"])
+def add_word():
+    data = request.get_json(force=True)
+    word = data.get("word")
+
+    if not word:
+        return jsonify({"error": "No word provided"}), 400
+
+    # Get or create the test user
+    user = get_or_create_user()
+
+    # Add the word to the user's list
+    users.update_one(
+        {"_id": user["_id"]},
+        {"$push": {"words": word}}
+    )
+
+    return jsonify({"message": f"'{word}' added"}), 200
 
 
 

@@ -3,16 +3,21 @@ import { Card } from "@/components/ui/card";
 import { Bot, History, Settings } from "lucide-react";
 import { useState } from "react"
 import ReactMarkdown  from "react-markdown"
+import { addWordToList } from "@/lib/api"; // ✅ Import the helper
 
 interface ThreePanelLayoutProps {
   onBackToCenter: () => void;
 }
 
-const handleAddToWordList = (word: string) => {
-  console.log(`Added ${word} to word list`);
-  // Later: save to database, state, or another list
-};
-
+const handleAddToWordList = async (word: string) => {
+    try {
+      await addWordToList(word);
+      console.log(`✅ Added ${word} to word list`);
+      // Optional: show a success message or update a saved words panel
+    } catch (error) {
+      console.error("❌ Failed to add word:", error);
+    }
+  };
 
 export const ThreePanelLayout = ({ onBackToCenter }: ThreePanelLayoutProps) => {
   const [chart, setChart] = useState("")
