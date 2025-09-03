@@ -2,7 +2,12 @@
 //async means it returns a promise
 //message:string means message must be a string
 //promise <string> means it must return a string from promise
-export async function sendMessageToServer(message:string) : Promise<string> {
+
+interface ChatResponse {
+  reply: string;
+  keywords: string[];
+}
+export async function sendMessageToServer(message:string) :  Promise<ChatResponse> {
 
 
     //await means that we pause here unti completed
@@ -18,7 +23,10 @@ export async function sendMessageToServer(message:string) : Promise<string> {
     } )
 
     const data = await res.json();
-    return data.reply as string;
+    return {
+        reply:data.reply as string, 
+        keywords:data.keywords as string[]
+    }
 }
 
 export async function getConjugationChart(message:string) : Promise<string> {

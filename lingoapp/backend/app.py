@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from pymongo import MongoClient
+import spacy 
 load_dotenv(override=True)
 
 openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -50,6 +51,8 @@ conjugation_prompt = "You are a Spanish verb conjugation assistant. Always respo
 app = Flask(__name__)
 
 client = MongoClient(mongodb)
+nlp = spacy.load("es_core_news_sm")
+
 
 try:
     # Run a simple command to verify connection
@@ -62,10 +65,31 @@ except Exception as e:
 def home():
     return "Hello World, from Flask!"
 
+def extract_keywords(sentence: str, max_keywords: int = 5):
+    doc = nlp(sentence)
+    keywords = []
+
+    for token in doc:
+        # Include AUX verbs too
+        if token.pos_ in ["NOUN", "VERB", "ADJ", "AUX"]:
+            keywords.append(token.text)  # original form
+            if token.lemma_ != token.text:
+                keywords.append(token.lemma_)  # lemma form
+
+    # Print for debugging
+    print("Extracted keywords:", keywords)
+
+    return keywords[:max_keywords]
+
+
+
+
 @app.route("/api/chat", methods = ["POST"])
 def call_model():
     data = request.get_json(force = True) or {}
     user_msg = (data.get("message") or "").strip()
+
+    keywords = extract_keywords(user_msg)
 
     messages = [
         {"role":"system", "content": system_prompt },
@@ -78,7 +102,8 @@ def call_model():
 
     reply = completion.choices[0].message.content
 
-    return jsonify({"reply": reply}), 200
+    return jsonify({"reply": reply,
+                    "keywords":keywords}), 200
 
 @app.route("/api/chart", methods = ["POST"])
 def call_conjugation():

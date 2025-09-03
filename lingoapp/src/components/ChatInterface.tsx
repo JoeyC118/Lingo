@@ -3,6 +3,7 @@ import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
 import { Card } from "@/components/ui/card";
 import { sendMessageToServer, getConjugationChart  } from "@/lib/api";
+import { KeyObject } from "crypto";
 
 export interface Message {
   id: string;
@@ -15,9 +16,10 @@ interface ChatInterfaceProps {
   onFirstMessage: () => void;
   isCompactMode?: boolean;
   setChart: React.Dispatch<React.SetStateAction<string>>;
+  setWords: React.Dispatch<React.SetStateAction<string[]>>
 }
 
-export const ChatInterface = ({onFirstMessage, isCompactMode = false, setChart }: ChatInterfaceProps) => {
+export const ChatInterface = ({onFirstMessage, setWords,  isCompactMode = false, setChart }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
 
@@ -35,7 +37,7 @@ export const ChatInterface = ({onFirstMessage, isCompactMode = false, setChart }
     setMessages(prev => [...prev, userMessage]);
     console.log("Sending to API")
 
-    const replyText = await sendMessageToServer(text)
+    const {reply, keywords}= await sendMessageToServer(text)
     const chartMessage = await getConjugationChart(text)
 
     setChart(chartMessage)
@@ -51,11 +53,13 @@ export const ChatInterface = ({onFirstMessage, isCompactMode = false, setChart }
 
     const aiMessage: Message = {
       id:(Date.now() + 1).toString(),
-      text:replyText,
+      text:reply,
       isUser: false,
       timestamp: new Date(),
     }
-    
+    console.log("keywords:", keywords);
+    setWords(keywords ?? []);
+
     setMessages(prev => [...prev,aiMessage])
 
   };
