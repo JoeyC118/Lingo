@@ -1,2 +1,5 @@
 .history
 .env
+chroma_es/
+*.sqlite
+*.parquet
