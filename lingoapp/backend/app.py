@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pymongo import MongoClient
 import spacy 
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
 load_dotenv(override=True)
 
 openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -11,9 +13,21 @@ mongodb = os.getenv('MONGODB_URI')
 openai = OpenAI()
 gpt_model = "gpt-4o-mini"
 
-system_prompt = "ONLY REPLY IN MARKDOWN LANGUAGE. DONT ASSUME THE USER CAN SPEAK SPANISH, YOU CANT REPLY IN SPANISH U HAVE TO TEACH IT! You are optimized to teach spanish. Your main function is to listen for a user to give u a spanish phrase, and then you translate it but theres more" \
-"First, when someone gives u a phrase, u translate it.  Then u break down each word and what it means, then you give examples of the phrase in context.  Do it in a natural way, talk to the user but put" \
-"flow these requriements in the conversation naturally"
+
+
+PERSIST_DIR = "./knowledgebase/chroma_es"
+COLLECTION = "spanish_kb"
+
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+
+vectorstore = Chroma(
+    collection_name=COLLECTION,
+    persist_directory=PERSIST_DIR,
+    embedding_function=embeddings,
+)
+
+system_prompt = "ONLY REPLY IN MARKDOWN LANGUAGE. DONT ASSUME THE USER CAN SPEAK SPANISH, YOU CANT REPLY IN SPANISH U HAVE TO TEACH IT! You are optimized to teach spanish.  Your main function is to listen for a user to give u a spanish phrase, and then you translate it but theres more" \
+"First, when someone gives u a phrase, u translate it. Break down what each word means. DO IT QUICKLY AND WITH ONLY A LITTLE BIT OF TEXT, WE WANT A FAST RESPONSE"
 
 conjugation_prompt = "You are a Spanish verb conjugation assistant. Always respond **only in Markdown**.\n\n" \
 "Goals:\n" \
@@ -56,6 +70,10 @@ users = db["users"]                            # Collection name
 
 nlp = spacy.load("es_core_news_sm")
 
+def retrieve_context(query: str, k: int = 3) -> str:
+    results = vectorstore.similarity_search(query, k=k)
+    context = "\n\n".join([r.page_content for r in results])
+    return context
 
 try:
     # Run a simple command to verify connection
@@ -93,26 +111,35 @@ def get_or_create_user():
 
 
 
-@app.route("/api/chat", methods = ["POST"])
+@app.route("/api/chat", methods=["POST"])
 def call_model():
-    data = request.get_json(force = True) or {}
+    data = request.get_json(force=True) or {}
     user_msg = (data.get("message") or "").strip()
 
+    # 1. Extract keywords (optional)
     keywords = extract_keywords(user_msg)
 
+    # 2. Retrieve Spanish context from vector DB
+    context = retrieve_context(user_msg)
+
+    # 3. Build messages with KB context
     messages = [
-        {"role":"system", "content": system_prompt },
-        {"role":"user", "content": user_msg}
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"User asked: {user_msg}\n\nRelevant Spanish text:\n{context}"}
     ]
+
     completion = openai.chat.completions.create(
-        model = gpt_model,
-        messages = messages
+        model=gpt_model,
+        messages=messages
     )
 
     reply = completion.choices[0].message.content
 
-    return jsonify({"reply": reply,
-                    "keywords":keywords}), 200
+    return jsonify({
+        "reply": reply,
+        "keywords": keywords,
+        "context_used": context  # for debugging, optional
+    }), 200
 
 @app.route("/api/chart", methods = ["POST"])
 def call_conjugation():

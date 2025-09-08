@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
 import { Card } from "@/components/ui/card";
-import { sendMessageToServer, getConjugationChart  } from "@/lib/api";
-import { KeyObject } from "crypto";
+import { sendMessageToServer, getConjugationChart } from "@/lib/api";
 
 export interface Message {
   id: string;
@@ -16,16 +15,23 @@ interface ChatInterfaceProps {
   onFirstMessage: () => void;
   isCompactMode?: boolean;
   setChart: React.Dispatch<React.SetStateAction<string>>;
-  setWords: React.Dispatch<React.SetStateAction<string[]>>
+  setWords: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export const ChatInterface = ({onFirstMessage, setWords,  isCompactMode = false, setChart }: ChatInterfaceProps) => {
+export const ChatInterface = ({
+  onFirstMessage,
+  setWords,
+  isCompactMode = false,
+  setChart,
+}: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // ✅ Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-
-  //defining a function
-  // the : Message is saying that userMessage must match the message interface
   const handleSendMessage = async (text: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -33,39 +39,41 @@ export const ChatInterface = ({onFirstMessage, setWords,  isCompactMode = false,
       isUser: true,
       timestamp: new Date(),
     };
+    setMessages((prev) => [...prev, userMessage]);
 
-    setMessages(prev => [...prev, userMessage]);
-    console.log("Sending to API")
+    const tempId = (Date.now() + 1).toString();
+    setMessages((prev) => [
+      ...prev,
+      { id: tempId, text: "…", isUser: false, timestamp: new Date() },
+    ]);
 
-    const {reply, keywords}= await sendMessageToServer(text)
-    const chartMessage = await getConjugationChart(text)
+    console.log("Sending to API");
 
-    setChart(chartMessage)
+    getConjugationChart(text)
+      .then((chartMessage) => {
+        if (typeof chartMessage === "string" && chartMessage.trim().length > 0) {
+          setChart(chartMessage);
+        } else {
+          setChart("**No chart returned.**");
+        }
+      })
+      .catch((err) => {
+        console.error("Chart fetch error:", err);
+        setChart("**Error fetching chart.**");
+      });
 
-    if (typeof chartMessage === "string" && chartMessage.trim().length > 0) {
-      setChart(chartMessage);
-    } else {
-      console.warn("Empty chartMessage; showing fallback.");
-      setChart("**No chart returned.**");
-    }
+    const { reply, keywords } = await sendMessageToServer(text);
 
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === tempId ? { ...m, text: reply, timestamp: new Date() } : m
+      )
+    );
 
-
-    const aiMessage: Message = {
-      id:(Date.now() + 1).toString(),
-      text:reply,
-      isUser: false,
-      timestamp: new Date(),
-    }
-    console.log("keywords:", keywords);
     setWords(keywords ?? []);
-
-    setMessages(prev => [...prev,aiMessage])
-
   };
 
   if (!isCompactMode) {
-    // Initial centered layout
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-2xl animate-fade-in">
@@ -77,12 +85,14 @@ export const ChatInterface = ({onFirstMessage, setWords,  isCompactMode = false,
               Your intelligent AI assistant
             </p>
           </div>
-          
+
           <Card className="bg-surface border-border p-6 animate-pulse-glow">
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto max-h-[70vh]">
               {messages.map((message) => (
                 <MessageBubble key={message.id} message={message} />
               ))}
+              {/* 👇 Always scrolls here */}
+              <div ref={messagesEndRef} />
             </div>
             <div className="mt-6">
               <ChatInput onSendMessage={handleSendMessage} />
@@ -93,19 +103,20 @@ export const ChatInterface = ({onFirstMessage, setWords,  isCompactMode = false,
     );
   }
 
-  // Compact layout for multi-panel view
   return (
     <Card className="h-full bg-surface border-border flex flex-col">
       <div className="p-4 border-b border-border">
         <h2 className="text-lg font-semibold text-foreground">Chat</h2>
       </div>
-      
+
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
+        {/* 👇 Always scrolls here */}
+        <div ref={messagesEndRef} />
       </div>
-      
+
       <div className="p-4 border-t border-border">
         <ChatInput onSendMessage={handleSendMessage} />
       </div>
